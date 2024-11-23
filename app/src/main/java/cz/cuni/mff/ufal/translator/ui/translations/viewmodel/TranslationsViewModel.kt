@@ -8,12 +8,12 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.speech.SpeechRecognizer
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import cz.cuni.mff.ufal.translator.R
+import cz.cuni.mff.ufal.translator.extensions.logD
 import cz.cuni.mff.ufal.translator.extensions.logE
 import cz.cuni.mff.ufal.translator.interactors.ContextUtils
 import cz.cuni.mff.ufal.translator.interactors.ContextUtils.isNetworkConnected
@@ -249,6 +249,7 @@ class TranslationsViewModel @Inject constructor(
         setInputText(InputTextData("", TextSource.ClearVoice))
         audioTextRecognizer.startRecognize(inputLanguage.value)
 
+        audioTextRecognizerJob?.cancel()
         audioTextRecognizerJob = audioTextRecognizer.text.onEach {
             if (it.isNotBlank()) {
                 setInputText(InputTextData(it, TextSource.Voice))
@@ -258,7 +259,6 @@ class TranslationsViewModel @Inject constructor(
 
     override fun stopRecognizeAudio() {
         audioTextRecognizer.stopRecognize()
-        audioTextRecognizerJob?.cancel()
         audioTextRecognizerJob = null
     }
 
@@ -370,7 +370,6 @@ class TranslationsViewModel @Inject constructor(
             while (true) {
                 delay(MIN_INTERVAL_API_MS)
                 if (lastInputText != inputTextData.value.text) {
-                    Log.d("logtom", "translate")
                     translate()
                 }
             }

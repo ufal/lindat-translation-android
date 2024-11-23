@@ -8,6 +8,11 @@ import cz.cuni.mff.ufal.translator.interactors.api.Api
 import cz.cuni.mff.ufal.translator.interactors.api.IApi
 import cz.cuni.mff.ufal.translator.interactors.asr.AudioTextRecognizer
 import cz.cuni.mff.ufal.translator.interactors.asr.IAudioTextRecognizer
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.AudioRecorder
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.CharlesAudioTextRecognizer
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.IAudioRecorder
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.IWebsocketClient
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.WebsocketClient
 import cz.cuni.mff.ufal.translator.interactors.db.Db
 import cz.cuni.mff.ufal.translator.interactors.db.IDb
 import cz.cuni.mff.ufal.translator.interactors.languages.ILanguagesManager
@@ -60,7 +65,7 @@ object MainModule {
     fun provideAnalytics(impl: Analytics): IAnalytics = impl
 
     @Provides
-    fun provideAudioTextRecognizer(impl: AudioTextRecognizer): IAudioTextRecognizer = impl
+    fun provideAudioTextRecognizer(impl: CharlesAudioTextRecognizer): IAudioTextRecognizer = impl
 
     @Provides
     @Singleton
@@ -70,5 +75,17 @@ object MainModule {
     @Singleton
     @Provides
     fun provideLanguagesManager(impl: LanguagesManager): ILanguagesManager = impl
+
+    @Singleton
+    @Provides
+    fun provideWebsocketClient(impl: WebsocketClient): IWebsocketClient = impl
+
+    @Singleton
+    @Provides
+    fun provideAudioRecorder(impl: AudioRecorder): IAudioRecorder = impl
+
+    @Singleton
+    @Provides
+    fun provideScope(): CoroutineScope = MainScope() + Dispatchers.Main.immediate
 
 }
