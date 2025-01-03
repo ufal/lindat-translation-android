@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cz.cuni.mff.ufal.translator.R
 import cz.cuni.mff.ufal.translator.base.BaseScreen
 import cz.cuni.mff.ufal.translator.interactors.crashlytics.Screen
+import cz.cuni.mff.ufal.translator.interactors.preferences.data.AudioSpeechRecognizerSetting
 import cz.cuni.mff.ufal.translator.interactors.preferences.data.DarkModeSetting
 import cz.cuni.mff.ufal.translator.main.controller.IMainController
 import cz.cuni.mff.ufal.translator.main.controller.PreviewIMainController
@@ -63,6 +64,13 @@ private fun Content(viewModel: ISettingsViewModel, mainController: IMainControll
             DarkModeSetting.System,
             DarkModeSetting.Enabled,
             DarkModeSetting.Disabled,
+        )
+    }
+    val audioSpeechRecognizerSetting by viewModel.audioSpeechRecognizerSetting.collectAsState()
+    val audioSpeechRecognizerSettings = remember {
+        listOf(
+            AudioSpeechRecognizerSetting.Google,
+            AudioSpeechRecognizerSetting.CUNI,
         )
     }
 
@@ -117,9 +125,18 @@ private fun Content(viewModel: ISettingsViewModel, mainController: IMainControll
 
         DarkModeSettingItem(
             selectedSetting = darkModeSetting,
-            darkModeSettings = darkModeSettings,
+            values = darkModeSettings,
         ) {
             viewModel.saveDarkModeSetting(it)
+        }
+
+        SettingsDivider()
+
+        AudioSpeechRecognizerSettingItem(
+            selectedSetting = audioSpeechRecognizerSetting,
+            values = audioSpeechRecognizerSettings,
+        ){
+            viewModel.saveAudioSpeechRecognizerSetting(it)
         }
 
         SettingsDivider()
@@ -157,7 +174,7 @@ fun TtsEngineSettingItem(
 @Composable
 fun DarkModeSettingItem(
     selectedSetting: DarkModeSetting,
-    darkModeSettings: List<DarkModeSetting>,
+    values: List<DarkModeSetting>,
 
     saveSetting: (DarkModeSetting) -> Unit,
 ) {
@@ -172,12 +189,40 @@ fun DarkModeSettingItem(
 
     SingleSelectDialog(
         title = stringResource(id = R.string.settings_dark_mode_title),
-        optionsList = darkModeSettings.map { stringResource(id = it.labelRes) },
+        optionsList = values.map { stringResource(id = it.labelRes) },
         selectedItem = stringResource(id = selectedSetting.labelRes),
         submitButtonText = stringResource(id = android.R.string.ok),
         dialogState = dialogState,
     ) { selectedIndex ->
-        val selectedItem = darkModeSettings[selectedIndex]
+        val selectedItem = values[selectedIndex]
+        saveSetting(selectedItem)
+    }
+}
+
+@Composable
+fun AudioSpeechRecognizerSettingItem(
+    selectedSetting: AudioSpeechRecognizerSetting,
+    values: List<AudioSpeechRecognizerSetting>,
+
+    saveSetting: (AudioSpeechRecognizerSetting) -> Unit,
+) {
+    val dialogState = rememberDialogState()
+
+    SettingSingleItem(
+        titleRes = R.string.settings_asr_title,
+        value = stringResource(id = selectedSetting.labelRes)
+    ) {
+        dialogState.show()
+    }
+
+    SingleSelectDialog(
+        title = stringResource(id = R.string.settings_asr_title),
+        optionsList = values.map { stringResource(id = it.labelRes) },
+        selectedItem = stringResource(id = selectedSetting.labelRes),
+        submitButtonText = stringResource(id = android.R.string.ok),
+        dialogState = dialogState,
+    ) { selectedIndex ->
+        val selectedItem = values[selectedIndex]
         saveSetting(selectedItem)
     }
 }

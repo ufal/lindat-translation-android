@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import cz.cuni.mff.ufal.translator.interactors.preferences.IUserDataStore
+import cz.cuni.mff.ufal.translator.interactors.preferences.data.AudioSpeechRecognizerSetting
 import cz.cuni.mff.ufal.translator.interactors.preferences.data.DarkModeSetting
 import cz.cuni.mff.ufal.translator.interactors.tts.ITextToSpeechWrapper
 import cz.cuni.mff.ufal.translator.interactors.tts.TextToSpeechWrapper
@@ -104,9 +105,21 @@ class SettingsViewModel @Inject constructor(
         DarkModeSetting.System,
     )
 
-    override fun saveDarkModeSetting(darkModeSetting: DarkModeSetting) {
+    override fun saveDarkModeSetting(value: DarkModeSetting) {
         viewModelScope.launch(Dispatchers.IO) {
-            userDataStore.saveDarkModeSetting(darkModeSetting)
+            userDataStore.saveDarkModeSetting(value)
+        }
+    }
+
+    override val audioSpeechRecognizerSetting = userDataStore.audioSpeechRecognizerSetting.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        AudioSpeechRecognizerSetting.Google,
+    )
+
+    override fun saveAudioSpeechRecognizerSetting(value: AudioSpeechRecognizerSetting) {
+        viewModelScope.launch(Dispatchers.IO) {
+            userDataStore.saveAudioSpeechRecognizerSetting(value)
         }
     }
 }

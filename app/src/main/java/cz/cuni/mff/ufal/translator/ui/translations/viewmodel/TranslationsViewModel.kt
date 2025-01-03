@@ -13,7 +13,6 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.ktx.Firebase
 import cz.cuni.mff.ufal.translator.R
-import cz.cuni.mff.ufal.translator.extensions.logD
 import cz.cuni.mff.ufal.translator.extensions.logE
 import cz.cuni.mff.ufal.translator.interactors.ContextUtils
 import cz.cuni.mff.ufal.translator.interactors.ContextUtils.isNetworkConnected

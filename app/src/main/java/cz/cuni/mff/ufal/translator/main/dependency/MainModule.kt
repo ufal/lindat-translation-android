@@ -65,7 +65,7 @@ object MainModule {
     fun provideAnalytics(impl: Analytics): IAnalytics = impl
 
     @Provides
-    fun provideAudioTextRecognizer(impl: CharlesAudioTextRecognizer): IAudioTextRecognizer = impl
+    fun provideAudioTextRecognizer(impl: AudioTextRecognizer): IAudioTextRecognizer = impl
 
     @Provides
     @Singleton

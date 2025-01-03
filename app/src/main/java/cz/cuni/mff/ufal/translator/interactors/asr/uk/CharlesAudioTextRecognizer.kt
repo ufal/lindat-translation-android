@@ -22,15 +22,13 @@ class CharlesAudioTextRecognizer @Inject constructor(
     override val text = MutableStateFlow("")
     override var activeLanguage = MutableStateFlow(Language.Czech)
 
-    override fun startRecognize(language: Language) {
-        if (isListening.value) {
-            return
-        }
-
-        activeLanguage.value = language
-        isListening.value = true
-        text.value = ""
-        finalText = ""
+    init {
+        audioRecorder.state.onEach { state ->
+            logD("state $state")
+            if (state is RecordingState.Completed) {
+                webSocketClient.sendAudio(state.data)
+            }
+        }.launchIn(scope)
 
         webSocketClient.getStateStream().onEach {
             logD("received $it")
@@ -42,15 +40,17 @@ class CharlesAudioTextRecognizer @Inject constructor(
             }
 
         }.launchIn(scope)
+    }
 
-        audioRecorder.state.onEach { state ->
-            logD("state $state")
-            if (state is RecordingState.Completed) {
-                webSocketClient.sendAudio(state.data)
-            }
+    override fun startRecognize(language: Language) {
+        if (isListening.value) {
+            return
+        }
 
-        }.launchIn(scope)
-
+        activeLanguage.value = language
+        isListening.value = true
+        text.value = ""
+        finalText = ""
 
         scope.launch {
             logD("start record")
@@ -69,6 +69,9 @@ class CharlesAudioTextRecognizer @Inject constructor(
     }
 
     override fun clear() {
+        isListening.value = false
+        text.value = ""
+        finalText = ""
         stopRecognize()
         scope.launch {
             webSocketClient.close()

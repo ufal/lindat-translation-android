@@ -1,142 +1,52 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package cz.cuni.mff.ufal.translator.interactors.asr
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import android.util.Log
-import cz.cuni.mff.ufal.translator.extensions.logE
-import cz.cuni.mff.ufal.translator.main.dependency.ApplicationCoroutineScope
+import cz.cuni.mff.ufal.translator.interactors.asr.google.GoogleAudioTextRecognizer
+import cz.cuni.mff.ufal.translator.interactors.asr.uk.CharlesAudioTextRecognizer
+import cz.cuni.mff.ufal.translator.interactors.preferences.IUserDataStore
+import cz.cuni.mff.ufal.translator.interactors.preferences.data.AudioSpeechRecognizerSetting
 import cz.cuni.mff.ufal.translator.ui.translations.models.Language
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
-import kotlin.math.absoluteValue
 
-
-/**
- * @author Tomas Krabac
- */
 class AudioTextRecognizer @Inject constructor(
-    context: Context,
+    cuniAudioTextRecognizer: CharlesAudioTextRecognizer,
+    googleAudioTextRecognizer: GoogleAudioTextRecognizer,
+    userDataStore: IUserDataStore,
+    scope: CoroutineScope,
 ) : IAudioTextRecognizer {
 
-    private var recognizedText = ""
+    private var selectedRecognizer = userDataStore.audioSpeechRecognizerSetting.map {
+        if (it == AudioSpeechRecognizerSetting.Google) {
+            googleAudioTextRecognizer
+        } else {
+            cuniAudioTextRecognizer
+        }
+    }.stateIn(scope, SharingStarted.WhileSubscribed(), googleAudioTextRecognizer)
 
-    override val rmsdB = MutableStateFlow(0.0f)
-    override val isListening = MutableStateFlow(false)
-    override val text = MutableStateFlow("")
-    override var activeLanguage = MutableStateFlow(Language.Czech)
+    override val rmsdB = selectedRecognizer.flatMapLatest { it.rmsdB }.stateIn(scope, SharingStarted.WhileSubscribed(), 0f)
 
-    private val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
-        setRecognitionListener(object : RecognitionListener {
-            override fun onReadyForSpeech(params: Bundle?) {
+    override val isListening = selectedRecognizer.flatMapLatest { it.isListening }.stateIn(scope, SharingStarted.WhileSubscribed(), false)
 
-            }
+    override val text = selectedRecognizer.flatMapLatest { it.text }.stateIn(scope, SharingStarted.WhileSubscribed(), "")
 
-            override fun onBeginningOfSpeech() {
-                recognizedText = text.value
-            }
-
-            override fun onRmsChanged(rmsdB: Float) {
-                if (rmsdB - this@AudioTextRecognizer.rmsdB.value.absoluteValue > 1) {
-                    this@AudioTextRecognizer.rmsdB.value = rmsdB
-                }
-            }
-
-            override fun onBufferReceived(buffer: ByteArray) {
-
-            }
-
-            override fun onEndOfSpeech() {
-
-            }
-
-            override fun onError(error: Int) {
-                logE("ASR error ${getErrorMessage(error)}")
-
-                isListening.value = false
-            }
-
-            override fun onResults(results: Bundle) {
-                val data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
-
-                if (data != null) {
-                    text.value = data
-                }
-                isListening.value = false
-            }
-
-            override fun onPartialResults(partialResults: Bundle) {
-                val data = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.firstOrNull()
-
-                if (data != null && recognizedText.isBlank()) {
-                    text.value = data
-                } else if (data != null) {
-                    text.value = "$recognizedText$data"
-                }
-            }
-
-            override fun onEvent(eventType: Int, params: Bundle) {
-
-            }
-
-        })
-    }
+    override val activeLanguage = selectedRecognizer.flatMapLatest { it.activeLanguage }.stateIn(scope, SharingStarted.WhileSubscribed(), Language.Czech)
 
     override fun startRecognize(language: Language) {
-        if (isListening.value) {
-            return
-        }
-
-        activeLanguage.value = language
-        isListening.value = true
-        text.value = ""
-
-        val speechRecognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, language.bcp47Code)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-           // putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 3000)
-        }
-
-        speechRecognizer.startListening(speechRecognizerIntent)
+        selectedRecognizer.value.startRecognize(language)
     }
 
     override fun stopRecognize() {
-        if (!isListening.value) {
-            return
-        }
-        speechRecognizer.stopListening()
+        selectedRecognizer.value.stopRecognize()
     }
 
     override fun clear() {
-        stopRecognize()
-        speechRecognizer.destroy()
+        selectedRecognizer.value.clear()
     }
-
-    private fun getErrorMessage(code: Int): String {
-        return when (code) {
-            SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "ERROR_NETWORK_TIMEOUT"
-            SpeechRecognizer.ERROR_NETWORK -> "ERROR_NETWORK"
-            SpeechRecognizer.ERROR_AUDIO -> "ERROR_AUDIO"
-            SpeechRecognizer.ERROR_SERVER -> "ERROR_SERVER"
-            SpeechRecognizer.ERROR_CLIENT -> "ERROR_CLIENT"
-            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "ERROR_SPEECH_TIMEOUT"
-            SpeechRecognizer.ERROR_NO_MATCH -> "ERROR_NO_MATCH"
-            SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "ERROR_RECOGNIZER_BUSY"
-            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "ERROR_INSUFFICIENT_PERMISSIONS"
-            SpeechRecognizer.ERROR_TOO_MANY_REQUESTS -> "ERROR_TOO_MANY_REQUESTS"
-            SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> "ERROR_SERVER_DISCONNECTED"
-            SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED -> "ERROR_LANGUAGE_NOT_SUPPORTED"
-            SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "ERROR_LANGUAGE_UNAVAILABLE"
-            SpeechRecognizer.ERROR_CANNOT_CHECK_SUPPORT -> "ERROR_CANNOT_CHECK_SUPPORT"
-            else -> "UNKNOWN"
-        }
-    }
-
 }
