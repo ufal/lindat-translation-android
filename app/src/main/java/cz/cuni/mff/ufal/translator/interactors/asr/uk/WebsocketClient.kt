@@ -1,7 +1,6 @@
 package cz.cuni.mff.ufal.translator.interactors.asr.uk
 
 import android.util.Log
-import com.google.gson.Gson
 import cz.cuni.mff.ufal.translator.BuildConfig
 import cz.cuni.mff.ufal.translator.extensions.logD
 import io.ktor.client.HttpClient
@@ -23,11 +22,14 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.serialization.json.Json
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import javax.inject.Inject
 
 class WebsocketClient @Inject constructor() : IWebsocketClient {
+
+    private val jsonDecoder = Json { ignoreUnknownKeys = true }
 
     private val client = HttpClient(CIO) {
         install(WebSockets)
@@ -68,8 +70,7 @@ class WebsocketClient @Inject constructor() : IWebsocketClient {
         }
 
         return try {
-            val gson = Gson()
-            val response = gson.fromJson(json, AudioTextResponse::class.java)
+            val response = jsonDecoder.decodeFromString<AudioTextResponse>(json)
             Pair(response.text, response.is_final)
         } catch (e: Throwable) {
             logD("Error parsing message: $e")
