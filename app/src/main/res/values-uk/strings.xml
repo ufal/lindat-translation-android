@@ -55,6 +55,9 @@
     <string name="settings_dark_mode_value_system">За системними налаштуваннями</string>
     <string name="settings_dark_mode_value_enabled">Увімкнено</string>
     <string name="settings_dark_mode_value_disabled">Вимкнено</string>
+    <string name="settings_asr_title">Voice recognition system</string>
+    <string name="settings_asr_value_google">Google</string>
+    <string name="settings_asr_value_cuni">Charles University</string>
     <!--Conversation screen -->
     <string name="conversation_title">Розмови</string>
     <string name="conversation_empty">Для початку розмови клацніть мікрофон внизу екрана</string>
