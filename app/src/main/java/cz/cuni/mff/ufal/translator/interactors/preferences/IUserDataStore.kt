@@ -1,5 +1,6 @@
 package cz.cuni.mff.ufal.translator.interactors.preferences
 
+import cz.cuni.mff.ufal.translator.interactors.preferences.data.AudioSpeechRecognizerSetting
 import cz.cuni.mff.ufal.translator.interactors.preferences.data.DarkModeSetting
 import cz.cuni.mff.ufal.translator.ui.translations.models.Language
 import kotlinx.coroutines.flow.Flow
@@ -31,7 +32,7 @@ interface IUserDataStore {
 
     val darkModeSetting: Flow<DarkModeSetting>
 
-    suspend fun saveDarkModeSetting(darkModeSetting: DarkModeSetting)
+    suspend fun saveDarkModeSetting(value: DarkModeSetting)
 
     val lastInputLanguage: Flow<Language>
 
@@ -40,4 +41,8 @@ interface IUserDataStore {
     suspend fun setLastInputLanguage(language: Language)
 
     suspend fun setLastOutputLanguage(language: Language)
+
+    val audioSpeechRecognizerSetting: Flow<AudioSpeechRecognizerSetting>
+
+    suspend fun saveAudioSpeechRecognizerSetting(value: AudioSpeechRecognizerSetting)
 }

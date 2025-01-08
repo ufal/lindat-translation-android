@@ -69,6 +69,9 @@ For any questions about this translator, please contact <a href="/support-mail">
     <string name="settings_dark_mode_value_system">As system</string>
     <string name="settings_dark_mode_value_enabled">Enabled</string>
     <string name="settings_dark_mode_value_disabled">Disabled</string>
+    <string name="settings_asr_title">Voice recognition system</string>
+    <string name="settings_asr_value_google">Google</string>
+    <string name="settings_asr_value_cuni">Charles University</string>
 
     <!--Conversation screen -->
     <string name="conversation_title">Conversation</string>

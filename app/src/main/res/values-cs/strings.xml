@@ -54,6 +54,9 @@ Dotazy ohledně tohoto překladače posílejte prosím na adresu <a href="/suppo
     <string name="settings_dark_mode_value_system">Podle systému</string>
     <string name="settings_dark_mode_value_enabled">Povoleno</string>
     <string name="settings_dark_mode_value_disabled">Zakázáno</string>
+    <string name="settings_asr_title">Systém pro rozpoznání hlasu</string>
+    <string name="settings_asr_value_google">Google</string>
+    <string name="settings_asr_value_cuni">Univerzita Karlova</string>
     <!--Conversation screen -->
     <string name="conversation_title">Konverzace</string>
     <string name="conversation_empty">Pro začátek konverzace klikněte na mikrofon v dolní části obrazovky</string>

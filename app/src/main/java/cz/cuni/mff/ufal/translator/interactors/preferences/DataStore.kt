@@ -10,9 +10,12 @@ import androidx.datastore.preferences.preferencesDataStore
 import cz.cuni.mff.ufal.translator.interactors.languages.LanguagesManager
 import cz.cuni.mff.ufal.translator.interactors.languages.LanguagesManager.Companion.DEFAULT_INPUT_LANGUAGE
 import cz.cuni.mff.ufal.translator.interactors.languages.LanguagesManager.Companion.DEFAULT_OUTPUT_LANGUAGE
+import cz.cuni.mff.ufal.translator.interactors.preferences.data.AudioSpeechRecognizerSetting
 import cz.cuni.mff.ufal.translator.interactors.preferences.data.DarkModeSetting
 import cz.cuni.mff.ufal.translator.interactors.tts.TextToSpeechWrapper.Companion.DEFAULT_TTS_ENGINE
+import cz.cuni.mff.ufal.translator.ui.settings.screens.AudioSpeechRecognizerSettingItem
 import cz.cuni.mff.ufal.translator.ui.translations.models.Language
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 /**
@@ -32,6 +35,7 @@ class UserDataStore(private val context: Context) : IUserDataStore {
         val DARK_MODE_SETTINGS = stringPreferencesKey("DARK_MODE_SETTINGS")
         val LAST_INPUT_LANGUAGE = stringPreferencesKey("LAST_INPUT_LANGUAGE")
         val LAST_OUTPUT_LANGUAGE = stringPreferencesKey("LAST_OUTPUT_LANGUAGE")
+        val AUDIO_SPEECH_RECOGNIZER_SETTINGS = stringPreferencesKey("AUDIO_SPEECH_RECOGNIZER_SETTINGS")
     }
 
     override suspend fun setFinishedOnboarding() {
@@ -93,9 +97,9 @@ class UserDataStore(private val context: Context) : IUserDataStore {
         }
     }
 
-    override suspend fun saveDarkModeSetting(darkModeSetting: DarkModeSetting) {
+    override suspend fun saveDarkModeSetting(value: DarkModeSetting) {
         context.userDataStore.edit {
-            it[DARK_MODE_SETTINGS] = darkModeSetting.key
+            it[DARK_MODE_SETTINGS] = value.key
         }
     }
 
@@ -116,6 +120,20 @@ class UserDataStore(private val context: Context) : IUserDataStore {
     override suspend fun setLastOutputLanguage(language: Language) {
         context.userDataStore.edit {
             it[LAST_OUTPUT_LANGUAGE] = language.code
+        }
+    }
+
+    override val audioSpeechRecognizerSetting = context.userDataStore.data.map {
+        when (it[AUDIO_SPEECH_RECOGNIZER_SETTINGS]) {
+            AudioSpeechRecognizerSetting.Google.key  -> AudioSpeechRecognizerSetting.Google
+            AudioSpeechRecognizerSetting.CUNI.key  -> AudioSpeechRecognizerSetting.CUNI
+            else ->  AudioSpeechRecognizerSetting.Google
+        }
+    }
+
+    override suspend fun saveAudioSpeechRecognizerSetting(value: AudioSpeechRecognizerSetting) {
+        context.userDataStore.edit {
+            it[AUDIO_SPEECH_RECOGNIZER_SETTINGS] = value.key
         }
     }
 }
