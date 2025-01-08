@@ -55,6 +55,9 @@ V prípade akýchkoľvek otázok týkajúcich sa tohoto prekladača nás môžet
     <string name="settings_dark_mode_value_system">Podľa systému</string>
     <string name="settings_dark_mode_value_enabled">Povolené</string>
     <string name="settings_dark_mode_value_disabled">Zakázané</string>
+    <string name="settings_asr_title">Voice recognition system</string>
+    <string name="settings_asr_value_google">Google</string>
+    <string name="settings_asr_value_cuni">Charles University</string>
     <!--Conversation screen -->
     <string name="conversation_title">Konverzácia</string>
     <string name="conversation_empty">Ak chcete začať konverzáciu, kliknite na mikrofón v dolnej časti obrazovky</string>
